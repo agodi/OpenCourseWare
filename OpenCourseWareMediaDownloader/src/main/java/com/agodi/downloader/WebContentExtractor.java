@@ -19,19 +19,24 @@ import com.agodi.helper.Lecture;
 /**
  * Class in charge of getting the content of the course's web page
  */
-public class WebContentExtractor {
+public class WebContentExtractor implements ContentExtractor {
+	
+	// URL of the course's web page
+	public String url;
+	
+	public WebContentExtractor(String courseURL) {
+		this.url = courseURL;
+	}
 
 	/**
 	 * Gets the URLs of each lecture in the course
 	 * 
-	 * @param courseURL
-	 *            URL of the course's web page
 	 * @return list of URLs
 	 * @throws IOException
 	 *             if there was an error connecting and retrieving the URLs
 	 */
-	public static List<String> extractLecturesUrls(String courseURL) throws IOException {
-		Document coursePage = Jsoup.connect(courseURL).get();
+	public List<String> extractLecturesUrls() throws IOException {
+		Document coursePage = Jsoup.connect(url).get();
 		Element lecturesLink = coursePage.getElementsContainingOwnText("Lecture Videos").first();
 
 		Document lecturesPage = Jsoup.connect(lecturesLink.absUrl("href")).get();
@@ -58,7 +63,7 @@ public class WebContentExtractor {
 	 *             if there was an error connecting and retrieving the lectures
 	 *             info
 	 */
-	public static List<Lecture> getLecturesFromUrls(List<String> urls) throws IOException {
+	public List<Lecture> getLecturesFromUrls(List<String> urls) throws IOException {
 		List<Lecture> lectures = new ArrayList<Lecture>();
 		int index = 0;
 		for (String url : urls) {
@@ -78,7 +83,7 @@ public class WebContentExtractor {
 	/**
 	 * Retrieves and stores the video associated to the lecture
 	 * 
-	 * @param filePath
+	 * @param directory
 	 *            where the lecture's video will be stored
 	 * @param lecture
 	 *            object containing the lectures video
@@ -90,12 +95,13 @@ public class WebContentExtractor {
 	 *             there is an error reading from the input stream or if there
 	 *             is an error writing to the output stream
 	 */
-	public static void downloadVideo(String filePath, Lecture lecture) throws IOException {
+	public void downloadVideo(String directory, Lecture lecture) throws IOException {
 		String title = lecture.getTitle();
 		String videoUrl = lecture.getVideoUrl();
-		StringBuilder fileName = new StringBuilder(filePath)
+		String fileName = new StringBuilder(directory)
 				.append(title.substring(0, title.indexOf(":")))
-				.append(videoUrl.substring(videoUrl.lastIndexOf(".")));
+				.append(videoUrl.substring(videoUrl.lastIndexOf(".")))
+				.toString();
 
 		File file = new File(fileName.toString());
 		if (file.exists()) {
@@ -130,13 +136,12 @@ public class WebContentExtractor {
 
 	/**
 	 * Gets the name of the course
-	 * @param courseURL URL of the course's web page
 	 * @return the name of the course
 	 * @throws IOException
 	 *             if there was an error connecting and retrieving the URLs
 	 */
-	public static String getCourseName(String courseURL) throws IOException {
-		Document coursePage = Jsoup.connect(courseURL).get();
+	public String getCourseName() throws IOException {
+		Document coursePage = Jsoup.connect(url).get();
 		Elements elements = coursePage.getElementsByClass("title");
 		return elements.first().ownText();
 	}
