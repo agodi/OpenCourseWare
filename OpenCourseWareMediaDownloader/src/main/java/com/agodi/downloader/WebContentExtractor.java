@@ -24,13 +24,14 @@ public class WebContentExtractor {
 	/**
 	 * Gets the URLs of each lecture in the course
 	 * 
-	 * @param coursePage
-	 *            DOM of the course's web page
+	 * @param courseURL
+	 *            URL of the course's web page
 	 * @return list of URLs
 	 * @throws IOException
 	 *             if there was an error connecting and retrieving the URLs
 	 */
-	public static List<String> extractLecturesUrls(Document coursePage) throws IOException {
+	public static List<String> extractLecturesUrls(String courseURL) throws IOException {
+		Document coursePage = Jsoup.connect(courseURL).get();
 		Element lecturesLink = coursePage.getElementsContainingOwnText("Lecture Videos").first();
 
 		Document lecturesPage = Jsoup.connect(lecturesLink.absUrl("href")).get();
@@ -128,32 +129,14 @@ public class WebContentExtractor {
 	}
 
 	/**
-	 * Creates a folder to store the course's videos and downloads each video
-	 * @param lectures list of objects containing the lectures info
-	 * @param filePath where to create a folder for the course's videos
-	 * @param courseName name of the course
-	 * @throws IOException if there is an error downloading the videos
-	 */
-	public static void downloadLecturesVideos(List<Lecture> lectures, String filePath, String courseName)
-			throws IOException {
-		StringBuilder parentFolderName = new StringBuilder(filePath).append(courseName).append(File.separator);
-
-		File parentFolder = new File(parentFolderName.toString());
-		if (!parentFolder.exists()) {
-			parentFolder.mkdir();
-		}
-
-		for (Lecture lecture : lectures) {
-			downloadVideo(parentFolderName.toString(), lecture);
-		}
-	}
-
-	/**
 	 * Gets the name of the course
-	 * @param coursePage DOM of the course's web page
+	 * @param courseURL URL of the course's web page
 	 * @return the name of the course
+	 * @throws IOException
+	 *             if there was an error connecting and retrieving the URLs
 	 */
-	public static String getCourseName(Document coursePage) {
+	public static String getCourseName(String courseURL) throws IOException {
+		Document coursePage = Jsoup.connect(courseURL).get();
 		Elements elements = coursePage.getElementsByClass("title");
 		return elements.first().ownText();
 	}
